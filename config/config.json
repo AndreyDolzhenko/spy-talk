@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "spy_talk_user",
+    "password": "st_2025",
+    "database": "spy_talk_base",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  },
+  "test": {
+    "username": "root",
+    "password": "st_2025",
+    "database": "spy_talk_base",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "root",
+    "password": "st_2025",
+    "database": "spy_talk_base",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  }
+}

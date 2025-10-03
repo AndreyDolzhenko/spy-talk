@@ -1,0 +1,35 @@
+{
+  "name": "spy-talk",
+  "version": "1.0.0",
+  "description": "\"app for one time secret talking\"",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AndreyDolzhenko/spy-talk.git"
+  },
+  "keywords": [
+    "spy"
+  ],
+  "author": "AndreyDolzhenko",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AndreyDolzhenko/spy-talk/issues"
+  },
+  "homepage": "https://github.com/AndreyDolzhenko/spy-talk#readme",
+  "dependencies": {
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "pg": "^8.16.3",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10",
+    "sequelize-cli": "^6.6.3"
+  }
+}
