@@ -67,11 +67,11 @@ app.get("/", (req, res) => {
   res.send("API для домашней библиотеки работает!");
 });
 
-// const authorRoutes = require('./routes/author.routes')
-// app.use('/api/authors', authorRoutes);
+const userRoutes = require('./routes/user.routes')
+app.use('/api/users', userRoutes);
 
-// const bookRoutes = require('./routes/book.routes')
-// app.use('/api/books', bookRoutes);
+const conversationRoutes = require('./routes/conversation.routes')
+app.use('/api/conversations', conversationRoutes);
 
 // const genreRoutes = require('./routes/genre.routes')
 // app.use('/api/genres', genreRoutes);
