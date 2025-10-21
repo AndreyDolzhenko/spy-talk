@@ -4,7 +4,7 @@ const conversationController = require('../controllers/conversation.controller')
 
 router.post('/', conversationController.createConversation);
 router.get('/', conversationController.getAllConversations);
-router.get('/:id', conversationController.getConversationById);
+router.get('/:user_id', conversationController.getConversationByUserId);
 router.put('/:id', conversationController.updateConversation);
 router.delete('/:id', conversationController.deleteConversation);
 

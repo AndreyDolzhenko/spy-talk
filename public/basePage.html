@@ -14,9 +14,32 @@
 
       <div>
         <input type="text" placeholder="Enter code" /> or
-        <span id="createWormhole">create wormhole</span>      
-
+        <span id="createWormhole">create wormhole</span>
       </div>
+
+      <div id="wellcome">
+        Session: 
+        <span id="sessionsName"></span>
+        Client: 
+        <span id="sessionsClient">0</span>
+        User ID: 
+        <span id="user_id">0</span>
+      </div>
+
+      <table width="100%">
+        <tr>
+          <td width="50%">
+            <form id="createMessage" action="#">
+              <textarea name="message" id="message" rows="5" cols="50"></textarea>
+              <div>
+                <input id="getMessage" type="button" value="get message"><br>
+                <input type="submit">
+              </div>
+            </form>
+          </td>
+          <td id="tapeOfdialog" width="50%"></td>
+        </tr>
+      </table>
       
     </main>
     <footer></footer>

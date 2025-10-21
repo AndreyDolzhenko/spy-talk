@@ -11,9 +11,31 @@ main {
     margin: 20px;
 }
 
+input {
+    margin: 0.5em;
+    padding: 0.2em;
+    width: 7em;
+    border-radius: 0.4em;
+}
+
 #createWormhole {
     font-size: 1.5em;
     text-decoration: underline;
     cursor: pointer;
     color: bisque;
+}
+
+#createMessage {
+    display: none;    
+    align-items: flex-end;
+}
+
+#wellcome {
+    margin: 20px;
+    color: lightslategray;
+    font-size: 1em;
+}
+
+#message {
+    padding: 0.5em;
 }
