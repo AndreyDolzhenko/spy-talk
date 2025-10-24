@@ -1,41 +1,93 @@
 * {
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-    background: aliceblue;
+  width: 100vw;
+  background: aliceblue;
 }
 
 main {
-    margin: 20px;
+  margin: 20px;
 }
 
 input {
+  margin: 0.5em;
+  padding: 0.2em;
+  width: 7em;
+  border-radius: 0.4em;
+}
+
+table {
+  float: left;
+}
+
+td {
+  vertical-align: top;
+}
+
+#spyHome {
+    float: left;
+    width: 2em;
     margin: 0.5em;
-    padding: 0.2em;
-    width: 7em;
-    border-radius: 0.4em;
+}
+
+#deleteChat {
+  /* display: none; */
+}
+
+#tapeOfdialog {
+  width: 40%;
+  word-wrap: break-word;
+  min-height: 30vh;
+  padding: 0.5em;
+  max-height: 30vh;
+  overflow: auto;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  background: floralwhite;
+}
+
+@media (max-width: 380px) {
+  #tapeOfdialog {
+    width: 100%;
+  }
 }
 
 #createWormhole {
-    font-size: 1.5em;
-    text-decoration: underline;
-    cursor: pointer;
-    color: bisque;
+  font-size: 1.5em;
+  text-decoration: underline;
+  cursor: pointer;
+  color: bisque;
 }
 
 #createMessage {
-    display: none;    
-    align-items: flex-end;
+  display: none;
+  align-items: flex-end;
 }
 
 #wellcome {
-    margin: 20px;
-    color: lightslategray;
-    font-size: 1em;
+  margin: 20px;
+  color: lightslategray;
+  font-size: 1em;
 }
 
 #message {
-    padding: 0.5em;
+  padding: 0.5em;
+}
+
+#checkChannel {
+  appearance: none;
+  width: 30px;
+  height: 10px;
+  background: linear-gradient(to right, bisque, bisque);
+  vertical-align: middle;
+  cursor: pointer;
+  transition: background 2s ease;
+}
+
+/* Или для активного состояния */
+#checkChannel:active {
+  background: linear-gradient(to right, bisque, red);
 }

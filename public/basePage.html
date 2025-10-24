@@ -8,38 +8,49 @@
     <link rel="shortcut icon" href="./images/spyIcon.png" type="image/x-icon">
   </head>
   <body>
-    <header></header>
-    <main>
+    <header>
+      <a href="/basePage.html" title="reload"><img id="spyHome" src="./images/spyIcon.png" alt="Spy"></a>      
       <h1 align="center">Welcome to Spy Talk!</h1>
+    </header>
+    <main>
 
       <div>
-        <input type="text" placeholder="Enter code" /> or
+        <form id="enterCode" action="#">
+          <input type="text" placeholder="Enter Code" />
+          <input type="submit">
+        </form>
+        or
         <span id="createWormhole">create wormhole</span>
       </div>
 
       <div id="wellcome">
         Session: 
         <span id="sessionsName"></span>
-        Client: 
+        <span id="clientChanging">Client/changing:</span> 
         <span id="sessionsClient">0</span>
         User ID: 
         <span id="user_id">0</span>
       </div>
 
-      <table width="100%">
+      <table>
         <tr>
-          <td width="50%">
-            <form id="createMessage" action="#">
-              <textarea name="message" id="message" rows="5" cols="50"></textarea>
-              <div>
-                <input id="getMessage" type="button" value="get message"><br>
-                <input type="submit">
-              </div>
-            </form>
+          <td>            
+              <form id="createMessage" action="#">
+                <textarea name="message" id="message" rows="5" cols="30"></textarea>
+                <div>                  
+                  <input id="getMessage" type="button" value="get message"><br>
+                  <input type="submit">
+              </form>            
           </td>
-          <td id="tapeOfdialog" width="50%"></td>
+          <td></td>
         </tr>
       </table>
+      <div id="tapeOfdialog"></div>
+      <br>
+      <input id="deleteChat" type="button" value="Delete Chat" style="cursor: pointer;">
+      <br>
+      <input id="deleteChannel" type="button" value="Delete Channel" style="cursor: pointer;" disabled>
+      <label style="cursor: pointer;" for="checkChannel">Delete</label><input id="checkChannel" name="checkChannel" type="checkbox">
       
     </main>
     <footer></footer>

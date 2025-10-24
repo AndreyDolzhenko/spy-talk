@@ -68,19 +68,20 @@ exports.updateConversation = async (req, res) => {
 };
 
 // DELETE: Удаление автора по ID
-exports.deleteConversation = async (req, res) => {
+exports.deleteConversation = async (req, res) => {  
   try {
-    const deleted = await Conversation.destroy({
-      where: { id: req.params.id },
+    const deletedCount = await Conversation.destroy({
+      where: { user_id: req.params.user_id },
     });
-    if (deleted) {
-      res.status(204).send(); // 204 No Content
-    } else {
-      res.status(404).json({ message: "Автор не найден" });
-    }
+    
+    res.status(200).json({ 
+      message: `Удалено диалогов: ${deletedCount}`,
+      deletedCount: deletedCount
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Ошибка при удалении автора", error: error.message });
+    res.status(500).json({ 
+      message: "Ошибка при удалении диалогов", 
+      error: error.message 
+    });
   }
 };

@@ -9,9 +9,17 @@ exports.createUser = async (req, res) => {
     const user = await User.create(req.body);
     res.status(201).json(user); // 201 Created
   } catch (error) {
+    // Проверяем, является ли ошибка нарушением уникальности
+    if (error.name === "SequelizeUniqueConstraintError") {
+      return res.status(409).json({
+        success: false,
+        message: "Пользователь с таким именем уже существует",
+      });
+    }
+
     res
       .status(500)
-      .json({ message: "Ошибка при создании автора", error: error.message });
+      .json({ message: "Ошибка при создании пользователя", error: error.message });
   }
 };
 

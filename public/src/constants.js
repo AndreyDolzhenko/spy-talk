@@ -7,7 +7,7 @@ function getRandomInt(min, max) {
 
     let result = "";
 
-    for (let index = 0; index < 3; index++) {
+    for (let index = 0; index < 2; index++) {
         const num = Math.floor(Math.random() * (max - min + 1)) + min;
         const element = num + alfabeth[num];
         result += element;
