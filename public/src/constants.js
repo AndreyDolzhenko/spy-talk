@@ -9,9 +9,12 @@ function getRandomInt(min, max) {
 
     for (let index = 0; index < 2; index++) {
         const num = Math.floor(Math.random() * (max - min + 1)) + min;
-        const element = num + alfabeth[num];
+        const numIndex = Math.floor(Math.random() * (max - min + 1)) + min;
+        const element = num + alfabeth[numIndex];
         result += element;
     }    
 
     return result;
 }
+
+const colors = ['green', 'blue', 'brown', 'orange', 'teal', 'purple', 'pink'];

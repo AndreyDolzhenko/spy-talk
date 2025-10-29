@@ -14,10 +14,10 @@
     "dialect": "postgres"
   },
   "production": {
-    "username": "root",
+    "username": "spy_talk_user",
     "password": "st_2025",
     "database": "spy_talk_base",
-    "host": "127.0.0.1",
+    "host": "89.111.172.208",
     "dialect": "postgres"
   }
 }

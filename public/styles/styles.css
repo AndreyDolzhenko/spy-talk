@@ -91,3 +91,8 @@ td {
 #checkChannel:active {
   background: linear-gradient(to right, bisque, red);
 }
+
+#changeColor {  
+  display: inline-flex;
+  flex-direction: row; /* Располагает элементы в ряд (это значение по умолчанию) */
+}
