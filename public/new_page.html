@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+</head>
+<body>
+    <h1>WebSocket Connection Test</h1>
+    <button onclick="connectWebSocket()">Connect to WebSocket</button>
+    <button onclick="sendMessage()">Send Test Message</button>
+    <div id="status">Status: Not connected</div>
+    <div id="messages" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc; height: 200px; overflow-y: auto;"></div>
+
+    <script>
+        let socket = null;
+
+        function log(message) {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            console.log(message);
+        }
+
+        function connectWebSocket() {
+            const statusDiv = document.getElementById('status');
+            
+            try {
+                log('🔄 Connecting to ws://localhost:3006...');
+                statusDiv.textContent = 'Status: Connecting...';
+                
+                socket = new WebSocket('ws://localhost:3006');
+                
+                socket.onopen = function(event) {
+                    log('✅ WebSocket CONNECTED successfully!');
+                    statusDiv.textContent = 'Status: Connected';
+                    statusDiv.style.color = 'green';
+                };
+                
+                socket.onmessage = function(event) {
+                    log('📨 Received: ' + event.data);
+                };
+                
+                socket.onerror = function(error) {
+                    log('❌ WebSocket ERROR');
+                    statusDiv.textContent = 'Status: Error - check console';
+                    statusDiv.style.color = 'red';
+                    console.error('WebSocket error details:', error);
+                };
+                
+                socket.onclose = function(event) {
+                    log('🔌 WebSocket CLOSED: ' + event.code + ' - ' + event.reason);
+                    statusDiv.textContent = 'Status: Disconnected';
+                    statusDiv.style.color = 'gray';
+                };
+                
+            } catch (error) {
+                log('💥 Exception: ' + error.message);
+                statusDiv.textContent = 'Status: Failed - ' + error.message;
+                statusDiv.style.color = 'red';
+            }
+        }
+
+        function sendMessage() {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                const message = 'Hello Server at ' + new Date().toLocaleTimeString();
+                socket.send(message);
+                log('📤 Sent: ' + message);
+            } else {
+                log('⚠️ Cannot send - WebSocket not connected');
+            }
+        }
+
+        // Автоподключение при загрузке страницы
+        window.onload = connectWebSocket;
+    </script>
+</body>
+</html>

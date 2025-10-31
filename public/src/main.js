@@ -1,4 +1,3 @@
-
 const createWormhole = document.getElementById("createWormhole");
 const wellcome = document.getElementById("wellcome");
 const message = document.getElementById("message");
@@ -14,9 +13,14 @@ const checkChannel = document.getElementById("checkChannel");
 const deleteChannel = document.getElementById("deleteChannel");
 const changeColor = document.getElementById("changeColor");
 
+const webSocketService = new WebSocketService();
+
+// console.log(webSocketService.connect);
+
 // changeColor create
 
 const changeColorCreate = () => {
+  changeColor.innerHTML = "";
   colors.map((el, index) => {
     const li = document.createElement("li");
     li.style = `background: ${el}; width: 2em; height: 1em; border-radius: 0.5em; margin-right: 0.5em; list-style-type: none; display: block;`;
@@ -134,10 +138,15 @@ enterCode.addEventListener("submit", async (event) => {
 
   const name = enterCode[0].value;
 
+  // console.log("enterCode[0].value - ", enterCode[0].value);
+  // console.log("name - ", name);
+
   const response = await fetch(`/api/users/${name}`);
   const user = await response.json();
 
   userId.innerText = user.id;
+
+  webSocketService.connect(user.id);
 
   createWormhole.style.display = "none";
   createMessage.style.display = "flex";

@@ -57,5 +57,71 @@
     <footer></footer>
     <script src="./src/constants.js"></script>
     <script src="./src/main.js"></script>
+     <script>
+        let socket = null;
+
+        function log(message) {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            console.log(message);
+        }
+
+        function log1(message) {
+            console.log(message);
+        }
+
+        function connectWebSocket() {
+            const statusDiv = document.getElementById('status');
+            
+            try {
+                log1('🔄 Connecting to ws://localhost:3006...');
+                // statusDiv.textContent = 'Status: Connecting...';
+                
+                socket = new WebSocket('ws://localhost:3006');
+                
+                socket.onopen = function(event) {
+                    log1('✅ WebSocket CONNECTED successfully!');
+                    // statusDiv.textContent = 'Status: Connected';
+                    // statusDiv.style.color = 'green';
+                };
+                
+                socket.onmessage = function(event) {
+                    log1('📨 Received: ' + event.data);
+                };
+                
+                socket.onerror = function(error) {
+                    log1('❌ WebSocket ERROR');
+                    // statusDiv.textContent = 'Status: Error - check console';
+                    // statusDiv.style.color = 'red';
+                    console.error('WebSocket error details:', error);
+                };
+                
+                socket.onclose = function(event) {
+                    log1('🔌 WebSocket CLOSED: ' + event.code + ' - ' + event.reason);
+                    // statusDiv.textContent = 'Status: Disconnected';
+                    // statusDiv.style.color = 'gray';
+                };
+                
+            } catch (error) {
+                log1('💥 Exception: ' + error.message);
+                // statusDiv.textContent = 'Status: Failed - ' + error.message;
+                // statusDiv.style.color = 'red';
+            }
+        }
+
+        function sendMessage() {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                const message = 'Hello Server at ' + new Date().toLocaleTimeString();
+                socket.send(message);
+                log1('📤 Sent: ' + message);
+            } else {
+                log1('⚠️ Cannot send - WebSocket not connected');
+            }
+        }
+
+        // Автоподключение при загрузке страницы
+        window.onload = connectWebSocket;
+    </script>
   </body>
 </html>

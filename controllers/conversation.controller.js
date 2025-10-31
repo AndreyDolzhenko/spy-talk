@@ -1,4 +1,5 @@
 const { Conversation } = require("../models");
+const { notifyUsers } = require('../index'); // или из utils/notifications
 
 // CREATE: Создание нового автора
 exports.createConversation = async (req, res) => {
@@ -68,20 +69,48 @@ exports.updateConversation = async (req, res) => {
 };
 
 // DELETE: Удаление автора по ID
-exports.deleteConversation = async (req, res) => {  
+exports.deleteConversation = async (req, res) => {
   try {
     const deletedCount = await Conversation.destroy({
       where: { user_id: req.params.user_id },
     });
-    
-    res.status(200).json({ 
+
+    res.status(200).json({
       message: `Удалено диалогов: ${deletedCount}`,
-      deletedCount: deletedCount
+      deletedCount: deletedCount,
     });
   } catch (error) {
-    res.status(500).json({ 
-      message: "Ошибка при удалении диалогов", 
-      error: error.message 
+    res.status(500).json({
+      message: "Ошибка при удалении диалогов",
+      error: error.message,
+    });
+  }
+};
+
+exports.createConversation = async (req, res) => {
+  try {
+    const { user_id, content, client } = req.body;
+    
+    const conversation = await Conversation.create({
+      user_id,
+      content,
+      client: client || 0
+    });
+    
+    res.json({
+      success: true,
+      data: conversation,
+      message: 'Conversation created successfully'
+    });
+
+    // console.log("!!! conversation !!! ", conversation);
+    
+    // Уведомление уже отправлено через хук afterCreate в модели
+  } catch (error) {
+    console.error('Error creating conversation:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating conversation'
     });
   }
 };
