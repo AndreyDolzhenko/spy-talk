@@ -1,48 +1,22 @@
 require("dotenv").config();
 const express = require("express");
 const http = require("http");
-const socketIo = require("socket.io");
 const { Sequelize } = require("sequelize");
 const path = require("path");
+const fs = require("fs");
+
+const { sequelize } = require("./models");
+const { Conversation } = require("./models");
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server, {
-  cors: {
-    origin: ["http://localhost:3006"],
-    methods: ["GET", "POST"],
-  },
-});
 
-// import { WebSocketService } from "./services/websocket";
-
-// Подключение к PostgreSQL
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    dialect: process.env.DB_DIALECT,
-    logging: false,
-    pool: {
-      max: 10,
-      min: 0,
-      acquire: 30000,
-      idle: 10000,
-    },
-  }
-);
-
-// Хранилище подключений по user_id
-const userConnections = new Map();
-
-// Middleware должны быть определены ДО маршрутов
+// Middleware - ВАЖНО: РАСКОММЕНТИРУЙТЕ ЭТУ СТРОКУ!
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "public"))); // ← УБЕРИТЕ КОММЕНТАРИЙ!
 
-// Импорт маршрутов ДО их использования
+// Импорт маршрутов
 const userRoutes = require("./routes/user.routes");
 const conversationRoutes = require("./routes/conversation.routes");
 
@@ -50,7 +24,122 @@ const conversationRoutes = require("./routes/conversation.routes");
 app.use("/api/users", userRoutes);
 app.use("/api/conversations", conversationRoutes);
 
-// Главный маршрут (только один!)
+// Добавьте для отладки
+app.get("/debug-files", (req, res) => {
+  const fs = require("fs");
+  const publicPath = path.join(__dirname, "public");
+
+  try {
+    const files = fs.readdirSync(publicPath);
+    const images = fs.readdirSync(path.join(publicPath, "images"));
+
+    res.json({
+      publicPath,
+      files,
+      images,
+    });
+  } catch (error) {
+    res.json({ error: error.message });
+  }
+});
+
+/// Server-Sent Events (SSE) - ИСПРАВЛЕННАЯ ВЕРСИЯ
+
+app.get("/events/:user_id", async (req, res) => {
+  // Устанавливаем заголовки для SSE
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    Connection: "keep-alive",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Cache-Control",
+  });
+
+  // Флаг для отслеживания состояния соединения
+  let isConnected = true;
+
+  // Функция для безопасной отправки данных
+  const sendEvent = (data) => {
+    if (!isConnected) return;
+
+    try {
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+
+      // Обработка буферизации (для Node.js)
+      if (res.flush) {
+        res.flush();
+      }
+    } catch (error) {
+      console.error("Error sending SSE:", error);
+      isConnected = false;
+    }
+  };
+
+  // Отправляем начальное сообщение
+  sendEvent({ type: "connected", message: "SSE connected" });
+  
+  const getAmountMessage = async () => {
+    if (!isConnected) return;   
+
+    try {
+      const conversations = await Conversation.findAll({
+        where: {
+          user_id: req.params.user_id,
+        },
+        order: [["createdAt", "DESC"]],
+      });
+
+      // Отправляем данные в правильном формате
+      sendEvent(conversations.length);
+    } catch (error) {
+      console.error("Error in SSE:", error);
+      sendEvent({
+        type: "error",
+        message: "Internal server error",
+      });
+    }
+  };
+
+  // Вызываем сразу и затем каждые 3 секунды
+  getAmountMessage();
+  const intervalId = setInterval(getAmountMessage, 3000);
+
+  // Обработчики событий соединения
+  req.on("close", () => {
+    console.log("SSE connection closed for user:", req.params.user_id);
+    isConnected = false;
+    clearInterval(intervalId);
+  });
+
+  req.on("end", () => {
+    console.log("SSE connection ended for user:", req.params.user_id);
+    isConnected = false;
+    clearInterval(intervalId);
+  });
+
+  req.on("error", (error) => {
+    console.error("SSE connection error:", error);
+    isConnected = false;
+    clearInterval(intervalId);
+  });
+
+  // Периодическая отправка ping для поддержания соединения
+  const pingInterval = setInterval(() => {
+    if (isConnected) {
+      sendEvent({ type: "ping", timestamp: new Date().toISOString() });
+    } else {
+      clearInterval(pingInterval);
+    }
+  }, 30000); // Каждые 30 секунд
+
+  // Очистка при разрыве
+  req.on("close", () => {
+    clearInterval(intervalId);
+    clearInterval(pingInterval);
+  });
+});
+
+// Главный маршрут
 app.get("/", (req, res) => {
   res.send(`
     <!DOCTYPE html>
@@ -83,98 +172,43 @@ app.get("/", (req, res) => {
       <a href="/basePage.html" title="Welcome to Spy Talk!">
         <img src="/images/spy.png" alt="Welcome to Spy Talk!" class="auto-animated-image">
       </a>
+      <!--
+      <a href="/debug-files" class="test-link">Check Files Debug</a>
+      <div id="status" style="margin-top: 20px;"></div>
+      -->
+      
+      <script>
+        // Проверяем доступность basePage.html
+        fetch('/basePage.html')
+          .then(response => {
+            const status = document.getElementById('status');
+            if (response.ok) {
+              status.innerHTML = '✅ basePage.html is accessible';
+              status.style.color = 'green';
+            } else {
+              status.innerHTML = '❌ basePage.html NOT found (' + response.status + ')';
+              status.style.color = 'red';
+            }
+          })
+          .catch(error => {
+            document.getElementById('status').innerHTML = '❌ Error: ' + error;
+            document.getElementById('status').style.color = 'red';
+          });
+      </script>
     </body>
     </html>
   `);
 });
 
-// Настройка Socket.io
-io.on("connection", (socket) => {
-  console.log("Client connected:", socket.id);
-
-  socket.on("register", (userId) => {
-    if (!userConnections.has(userId)) {
-      userConnections.set(userId, new Set());
-    }
-    userConnections.get(userId).add(socket.id);
-    socket.userId = userId;
-    console.log(`User ${userId} registered with socket ${socket.id}`);
-  });
-
-  socket.on("disconnect", () => {
-    if (socket.userId && userConnections.has(socket.userId)) {
-      userConnections.get(socket.userId).delete(socket.id);
-      if (userConnections.get(socket.userId).size === 0) {
-        userConnections.delete(socket.userId);
-      }
-    }
-    console.log("Client disconnected:", socket.id);
-  });
-});
-
-// Функция для отправки уведомлений
-// const notifyUsers = (userId, event, data) => {
-//   if (userConnections.has(userId)) {
-//     const sockets = userConnections.get(userId);
-//     sockets.forEach((socketId) => {
-//       io.to(socketId).emit(event, data);
-//     });
-//     console.log(
-//       `📢 Notification sent to ${sockets.size} clients for user ${userId}`
-//     );
-//   }
-// };
-
-// Проверка подключения к базе данных
-const testConnection = async () => {
-  try {
-    await sequelize.authenticate();
-    console.log("✅ PostgreSQL connection established successfully");
-
-    // Синхронизация моделей (осторожно в продакшене)
-    await sequelize.sync();
-    console.log("✅ Database synchronized");
-  } catch (error) {
-    console.error("❌ Unable to connect to PostgreSQL:", error);
-    process.exit(1);
-  }
-};
-
 const PORT = process.env.PORT || 3005;
 
-const startServer = async () => {
+app.listen(PORT, async () => {
+  console.log(`Сервер запущен на порту ${PORT}`);
+
   try {
-    await testConnection();
-
-    server.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`📊 Database: ${process.env.DB_HOST}/${process.env.DB_NAME}`);
-    });
+    await sequelize.authenticate();
+    console.log("Подключение к базе данных успешно установлено.");
   } catch (error) {
-    console.error("❌ Failed to start server:", error);
-    process.exit(1);
+    console.error("Не удалось подключиться к базе данных:", error);
   }
-};
-
-// Обработка непредвиденных ошибок
-process.on("unhandledRejection", (err) => {
-  console.error("Unhandled Promise Rejection:", err);
-  process.exit(1);
 });
-
-process.on("uncaughtException", (err) => {
-  console.error("Uncaught Exception:", err);
-  process.exit(1);
-});
-
-startServer();
-
-// Экспортируем для использования в других модулях
-module.exports = {
-  app,
-  server,
-  io,
-  sequelize,
-  userConnections,
-  // notifyUsers,
-};

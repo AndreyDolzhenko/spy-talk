@@ -1,5 +1,4 @@
 const { Model, DataTypes } = require('sequelize');
-const { notifyUsers } = require('../utils/notifications'); // Импортируем из главного файла
 
 module.exports = (sequelize) => {
   class Conversation extends Model {
@@ -34,28 +33,28 @@ module.exports = (sequelize) => {
   }, {
     sequelize,
     modelName: 'Conversation',
-    hooks: {
-      afterCreate: async (conversation, options) => {
-        try {
-          // Отправляем уведомление всем подключенным клиентам с этим user_id
-          notifyUsers(conversation.user_id, 'newConversation', {
-            message: `Новая запись добавлена для user_id: ${conversation.user_id}`,
-            conversation: {
-              id: conversation.id,
-              user_id: conversation.user_id,
-              content: conversation.content,
-              client: conversation.client,
-              createdAt: conversation.createdAt
-            },
-            timestamp: new Date().toISOString()
-          });
+    // hooks: {
+    //   afterCreate: async (conversation, options) => {
+    //     try {
+    //       // Отправляем уведомление всем подключенным клиентам с этим user_id
+    //       notifyUsers(conversation.user_id, 'newConversation', {
+    //         message: `Новая запись добавлена для user_id: ${conversation.user_id}`,
+    //         conversation: {
+    //           id: conversation.id,
+    //           user_id: conversation.user_id,
+    //           content: conversation.content,
+    //           client: conversation.client,
+    //           createdAt: conversation.createdAt
+    //         },
+    //         timestamp: new Date().toISOString()
+    //       });
           
-          console.log(`✅ Notification sent for new conversation (id: ${conversation.id}, user_id: ${conversation.user_id})`);
-        } catch (error) {
-          console.error('❌ Error sending notification:', error);
-        }
-      }
-    }
+    //       console.log(`✅ Notification sent for new conversation (id: ${conversation.id}, user_id: ${conversation.user_id})`);
+    //     } catch (error) {
+    //       console.error('❌ Error sending notification:', error);
+    //     }
+    //   }
+    // }
   });
 
   return Conversation;

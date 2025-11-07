@@ -1,5 +1,4 @@
 const { Conversation } = require("../models");
-const { notifyUsers } = require('../index'); // или из utils/notifications
 
 // CREATE: Создание нового автора
 exports.createConversation = async (req, res) => {

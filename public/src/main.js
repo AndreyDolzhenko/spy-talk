@@ -13,7 +13,46 @@ const checkChannel = document.getElementById("checkChannel");
 const deleteChannel = document.getElementById("deleteChannel");
 const changeColor = document.getElementById("changeColor");
 
-const webSocketService = new WebSocketService();
+// Server-Sent Events (SSE)
+
+// Initialize an EventSource object
+
+let startAmount = 0;
+
+
+const displayElement = document.getElementById("sse-data");
+const newMessage = document.getElementById("sse-data-new");
+
+
+const changeAmountOfMessege = (user_id) => {
+  const eventSource = new EventSource(`http://localhost:3005/events/${user_id}`);
+  
+  // Handle incoming messages
+  eventSource.onmessage = (event) => {
+    let data = +displayElement.innerText;
+    if (event.data !== data) {
+      newMessage.innerHTML = `${
+        event.data - data
+      }`;
+      // displayElement.innerHTML = `${event.data}`;
+    }
+
+    // displayElement.innerHTML = `${event.data}`;
+
+    // startAmount = event.data;
+
+    // console.log("startAmount - ", startAmount);
+    // console.log("event.data - ", event.data);
+  };
+
+  // Handle any errors
+  eventSource.onerror = (error) => {
+    console.error("EventSource failed:", error);
+    eventSource.close();
+  };
+};
+
+// const webSocketService = new WebSocketService();
 
 // console.log(webSocketService.connect);
 
@@ -37,7 +76,7 @@ const changeColorCreate = () => {
 const correspondence = async (user_id) => {
   tapeOfdialog.innerHTML = "";
   const response = await fetch(`/api/conversations/${user_id}`);
-  const result = await response.json();
+  const result = await response.json();  
 
   result.map((el) => {
     const p = document.createElement("p");
@@ -50,6 +89,11 @@ const correspondence = async (user_id) => {
     p.innerHTML = `Client: ${el.client}. ${el.content} <br>${result}`;
     tapeOfdialog.append(p);
   });
+
+
+  displayElement.innerHTML = +displayElement.innerText + +newMessage.innerText;
+  newMessage.innerText = "";
+
 };
 
 // checkChannel
@@ -138,15 +182,21 @@ enterCode.addEventListener("submit", async (event) => {
 
   const name = enterCode[0].value;
 
-  // console.log("enterCode[0].value - ", enterCode[0].value);
-  // console.log("name - ", name);
-
   const response = await fetch(`/api/users/${name}`);
   const user = await response.json();
 
   userId.innerText = user.id;
 
-  webSocketService.connect(user.id);
+  const user_id = user.id;
+
+  // Получаем данные о новых сообщениях
+
+  changeAmountOfMessege(user_id);
+
+  const startResponse = await fetch(`/api/conversations/${user_id}`);
+  const result = await startResponse.json();
+
+  displayElement.innerHTML = result.length;
 
   createWormhole.style.display = "none";
   createMessage.style.display = "flex";
@@ -155,9 +205,8 @@ enterCode.addEventListener("submit", async (event) => {
 });
 
 // Создание нового юзера с рандомным именем
-const createNewChanel = async (name) => { 
-
-  try {    
+const createNewChanel = async (name) => {
+  try {
     const response = await fetch("/api/users", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -169,7 +218,7 @@ const createNewChanel = async (name) => {
     // Выводим сообщение в консоль браузера
     if (response.ok) {
       sessionsName.innerText = name;
-      sessionsClient.innerText = 1;      
+      sessionsClient.innerText = 1;
 
       const responseID = await fetch(`/api/users/${name}`);
       const user = await responseID.json();
@@ -205,12 +254,11 @@ createWormhole.addEventListener("click", (event) => {
   // const name = "1B7H";
 
   createNewChanel(name);
-
 });
 
 //
 
-// Send of message from Client
+// Send of message to Client
 
 createMessage.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -229,6 +277,8 @@ createMessage.addEventListener("submit", async (event) => {
 
   correspondence(user_id);
   message.value = "";
+  newMessage.innerText = "";
+  displayElement.innerHTML = +displayElement.innerText + 1;
 });
 
 getMessage.addEventListener("click", (event) => {

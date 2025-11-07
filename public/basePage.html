@@ -15,6 +15,7 @@
     <main>
 
       <div>
+        Всего сообщений:<span id="sse-data"></span> Новых: <span id="sse-data-new" style="color: green;"></span> <br>
         <form id="enterCode" action="#">
           <input type="text" placeholder="Enter Code" />
           <input type="submit">
@@ -57,7 +58,7 @@
     <footer></footer>
     <script src="./src/constants.js"></script>
     <script src="./src/main.js"></script>
-     <script>
+     <!-- <script>
         let socket = null;
 
         function log(message) {
@@ -122,6 +123,6 @@
 
         // Автоподключение при загрузке страницы
         window.onload = connectWebSocket;
-    </script>
+    </script> -->
   </body>
 </html>
