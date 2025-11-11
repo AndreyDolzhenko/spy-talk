@@ -2,9 +2,13 @@ const { User } = require("../models");
 
 // CREATE: Создание нового автора
 exports.createUser = async (req, res) => {
-  console.log(req.body);
-
+  // console.log(req.body);
   try {
+
+    const clientIP = req.clientIP; // ← IP доступен здесь!
+    
+    console.log(`Регистрация пользователя с IP: ${clientIP}`);
+    
     // req.body содержит данные { name: 'Имя', birth_year: 1900 }
     const user = await User.create(req.body);
     res.status(201).json(user); // 201 Created

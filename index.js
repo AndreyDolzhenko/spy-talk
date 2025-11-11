@@ -11,6 +11,8 @@ const { Conversation } = require("./models");
 const app = express();
 const server = http.createServer(app);
 
+app.set("trust proxy", true); // get ip address
+
 // Middleware - ВАЖНО: РАСКОММЕНТИРУЙТЕ ЭТУ СТРОКУ!
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -23,6 +25,15 @@ const conversationRoutes = require("./routes/conversation.routes");
 // Подключение маршрутов
 app.use("/api/users", userRoutes);
 app.use("/api/conversations", conversationRoutes);
+
+// User Agent
+
+app.use((req, res, next) => {
+  const userAgent = req.headers['user-agent'];
+  console.log('User Agent:', userAgent);
+  req.userAgent = userAgent;
+  next();
+});
 
 // Добавьте для отладки
 app.get("/debug-files", (req, res) => {
@@ -77,9 +88,9 @@ app.get("/events/:user_id", async (req, res) => {
 
   // Отправляем начальное сообщение
   sendEvent({ type: "connected", message: "SSE connected" });
-  
+
   const getAmountMessage = async () => {
-    if (!isConnected) return;   
+    if (!isConnected) return;
 
     try {
       const conversations = await Conversation.findAll({
@@ -141,6 +152,13 @@ app.get("/events/:user_id", async (req, res) => {
 
 // Главный маршрут
 app.get("/", (req, res) => {
+  const ip = req.ip; // получаем ip
+
+  // Санитизация IP для безопасной вставки в HTML
+  const safeIP = ip.replace(/[<>&"']/g, "");
+
+  console.log("!!! req.ip: !!! ", ip);
+
   res.send(`
     <!DOCTYPE html>
     <html lang="en">
@@ -166,10 +184,35 @@ app.get("/", (req, res) => {
         .auto-animated-image {
           animation: scaleAnimation 3s ease-in-out;
         }
+        #myIp {
+        position: absolute;
+        top: 2em;
+        left: 1em;
+        font-size: 24px;
+        font-weight: 300;
+        display: inline-block;
+        letter-spacing: 2px;
+        font-family: Arial, Helvetica, sans-serif;
+        color: darkgrey;
+        box-sizing: border-box;
+        animation: spotlight 4s linear infinite alternate;
+        }       
+
+        @keyframes spotlight {
+          0% , 20% {
+            opacity: 1;
+            letter-spacing: 2px;
+           }
+         80% , 100% {
+            opacity: 0;
+            letter-spacing: 5px;
+           }
+        }
       </style>
     </head>
     <body>
-      <a href="/basePage.html" title="Welcome to Spy Talk!">
+    <!--<a id="myIp" href="/basePage.html">мои сессии</a> -->
+      <a id="mainEnter" href="/basePage.html" title="Welcome to Spy Talk!">
         <img src="/images/spy.png" alt="Welcome to Spy Talk!" class="auto-animated-image">
       </a>
       <!--
@@ -193,6 +236,41 @@ app.get("/", (req, res) => {
           .catch(error => {
             document.getElementById('status').innerHTML = '❌ Error: ' + error;
             document.getElementById('status').style.color = 'red';
+          });
+      </script>
+      <script>
+        // Безопасная передача IP
+        const serverIP = ${JSON.stringify(safeIP)};
+        
+        // Функция для логирования
+        function logIPInfo() {
+          console.log('🎯 Сервер определил ваш IP как:', serverIP);
+          console.log('📊 Дополнительная информация о подключении:');
+          console.table({
+            'User Agent': navigator.userAgent,
+            'Язык': navigator.language,
+            'Платформа': navigator.platform
+          });
+        }
+        
+        logIPInfo();
+        
+        // Сравнение с клиентским IP
+        fetch('https://api.ipify.org?format=json')
+          .then(r => r.json())
+          .then(({ip: clientIP}) => {
+            console.log('🌐 Клиентский IP:', clientIP);
+
+            const link = document.getElementById('mainEnter');
+            //link.innerText = clientIP;  
+            link.href += "?ip="+clientIP;
+            
+            if (serverIP !== clientIP) {
+              console.log('🔍 Разница в IP может быть вызвана:');
+              console.log('   - Прокси сервером');
+              console.log('   - VPN подключением');
+              console.log('   - NAT трансляцией');
+            }
           });
       </script>
     </body>

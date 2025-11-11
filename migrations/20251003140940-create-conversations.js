@@ -30,6 +30,10 @@ module.exports = {
         defaultValue: 0,
         allowNull: false,
       },
+      ipAddress: {
+            type: Sequelize.STRING,
+            allowNull: true,
+          },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

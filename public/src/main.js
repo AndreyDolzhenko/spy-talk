@@ -13,6 +13,12 @@ const checkChannel = document.getElementById("checkChannel");
 const deleteChannel = document.getElementById("deleteChannel");
 const changeColor = document.getElementById("changeColor");
 
+// забираем ip из адресной строки
+
+const urlParams = new URLSearchParams(window.location.search);
+const ipAddress = urlParams.get('ip');
+
+
 // Server-Sent Events (SSE)
 
 // Initialize an EventSource object
@@ -267,11 +273,13 @@ createMessage.addEventListener("submit", async (event) => {
   const user_id = +userId.innerText;
   const content = message.value;
 
+  console.log("ipAddress - ", ipAddress);
+
   if (message.value !== "") {
     await fetch("/api/conversations", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id, content, client }),
+      body: JSON.stringify({ user_id, content, client, ipAddress }),
     });
   }
 

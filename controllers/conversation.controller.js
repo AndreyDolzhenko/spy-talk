@@ -1,8 +1,9 @@
 const { Conversation } = require("../models");
+const UAParser = require("ua-parser-js");
 
 // CREATE: Создание нового автора
 exports.createConversation = async (req, res) => {
-  console.log(req.body);
+  console.log("body - ", req.body);
 
   try {
     // req.body содержит данные { name: 'Имя', birth_year: 1900 }
@@ -88,28 +89,72 @@ exports.deleteConversation = async (req, res) => {
 
 exports.createConversation = async (req, res) => {
   try {
-    const { user_id, content, client } = req.body;
-    
+    // Логирование User Agent
+    const userAgent = req.headers["user-agent"];
+    console.log("User Agent:", userAgent);
+    req.userAgent = userAgent;
+    // Здесь забираем информацию об устройстве клиента
+    const parser = new UAParser();
+
+    const result = parser.setUA(userAgent).getResult();
+
+    req.deviceInfo = {
+      browser: result.browser.name + " " + result.browser.version,
+      os: result.os.name + " " + result.os.version,
+      device: result.device.type || "desktop",
+      deviceModel: result.device.model,
+      userAgent: userAgent,
+    };
+
+    console.log("📱 Device Info:", req.deviceInfo);
+
+    const { user_id, content, client, ipAddress } = req.body;
+
+    // ipAddress += userAgent;
+
+    // Валидация обязательных полей
+    if (!user_id || !content) {
+      return res.status(400).json({
+        success: false,
+        message: "user_id and content are required",
+      });
+    }
+
     const conversation = await Conversation.create({
       user_id,
       content,
-      client: client || 0
+      client: client || 0,
+      ipAddress: ipAddress || req.ip, // Используем req.ip если ipAddress не передан
+      userAgent, // Сохраняем userAgent в базу
     });
-    
-    res.json({
+
+    res.status(201).json({
       success: true,
       data: conversation,
-      message: 'Conversation created successfully'
+      message: "Conversation created successfully",
     });
 
     // console.log("!!! conversation !!! ", conversation);
-    
-    // Уведомление уже отправлено через хук afterCreate в модели
   } catch (error) {
-    console.error('Error creating conversation:', error);
-    res.status(500).json({
+    console.error("Error creating conversation:", error);
+
+    // Более детальная обработка ошибок
+    let statusCode = 500;
+    let errorMessage = "Error creating conversation";
+
+    if (error.name === "SequelizeValidationError") {
+      statusCode = 400;
+      errorMessage =
+        "Validation error: " + error.errors.map((e) => e.message).join(", ");
+    } else if (error.name === "SequelizeUniqueConstraintError") {
+      statusCode = 400;
+      errorMessage = "Duplicate entry";
+    }
+
+    res.status(statusCode).json({
       success: false,
-      message: 'Error creating conversation'
+      message: errorMessage,
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 };
